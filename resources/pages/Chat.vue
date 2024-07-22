@@ -3,7 +3,7 @@
         <h1>Диалог с {{ penpal.name }} {{ penpal.surname }}:</h1>
         <div class="dialog" id="dialog">
         <div v-for="chat_message in messages" v-if="messages.length != 0">
-            <div v-if="chat_message.is_received_message" class="other_user">
+            <div v-if="chat_message.messager_id == penpal_id" class="other_user">
                 <img :src="'/storage/profile_pics/'+chat_message.messager_pfp" alt="">
                 <div class="text">
                     <div class="upper_line">
@@ -47,12 +47,12 @@
 
   <script>
   import axios from "axios"
-  import {getCurrentInstance} from 'vue'
   export default {
     name: "Chat",
     data() {
       return {
         'user_pfp': window.Laravel.user.pfp,
+        user_id: window.Laravel.user.id,
         penpal_id: window.location.href.substring(window.location.href.lastIndexOf('/') + 1),
         chat_message: '',
         errors: {
@@ -63,43 +63,43 @@
         invalid_user: false
       }
     },
-    setup(){
-        Echo.private(`chat`)
-            .listen('NewMessage', (e) => {
-        axios.get("/sanctum/csrf-cookie").then((response) => {
-                axios.get("api/getmessages/"+getCurrentInstance().data.penpal_id)
-                .then((response) => {
-                        console.log('outside')
-                    if(getCurrentInstance().data.messages != response.data.data){
-                        getCurrentInstance().data.messages = response.data.data
-                        console.log('inside')
-                    }
-                    
-                })
-            }); 
-          });               
-    },
     created() {
         console.log(this.penpal_id)
         this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-        this.$axios.get("api/getmessages/"+this.penpal_id)
-            .then((response) => {
+            this.$axios.get('api/readmessages/0/'+this.penpal_id+'/'+this.user_id).then(response => {
                 this.messages = response.data.data
+                setTimeout(() => {
+                        const element = document.getElementById('dialog');
+                        element.scrollTop = element.scrollHeight;
+                    }, 500);
             })
         this.$axios.get('api/user/'+this.penpal_id).then(response => {
             this.penpal = response.data;
-            console.log(response.data)
         })
-            this.$axios.get("api/getmessages/"+this.penpal_id)
-            .then((response) => {
-                    this.messages = response.data.data
+
+         });   
+         Echo.private(`chat`)
+            .listen('NewMessage', (e) => {
+                if(this.penpal_id == e.user_1 && this.user_id == e.user_2 || this.penpal_id == e.user_2 && this.user_id == e.user_1){
+                    this.$axios.get("/sanctum/csrf-cookie").then((response) => {                  
+                        this.$axios.get('api/readmessages/'+this.messages[this.messages.length - 1].id+'/'+this.penpal_id+'/'+this.user_id).then(response => {
+                        
+                        })
+                    });                      
+                    
+                }
+                
+          });    
+          
+          Echo.private('chat_read').listen('ReadMessage', (e) => {
+                   if(this.penpal_id == e.chatMessages.reciewer_id && this.user_id == e.chatMessages.sender_id || this.penpal_id == e.chatMessages.sender_id && this.user_id == e.chatMessages.reciewer_id){                
+                    this.messages = e.chatMessages
                     setTimeout(() => {
                         const element = document.getElementById('dialog');
                         element.scrollTop = element.scrollHeight;
-                    }, 1000);
-            })
-         });   
-                      
+                    }, 500);
+                 }                   
+          });
         
     },
     methods: {
@@ -113,13 +113,6 @@
                 this.chat_message = ''
                 this.$axios.get("api/getmessages/"+this.penpal_id)
             .then((response) => {
-                this.messages = response.data.data
-                setTimeout(() => {
-                    const element = document.getElementById('dialog');
-                    element.scrollTop = element.scrollHeight;
-                    window.scrollTo(0, 200);
-                }, 1000);
-                console.log(response.data)
             })
             })
             .catch((err) => {
@@ -141,7 +134,6 @@
         }
         axios.get("/sanctum/csrf-cookie").then((response) => {        
         axios.get('api/user/'+window.location.href.substring(window.location.href.lastIndexOf('/') + 1)).then(response => {
-            console.log("!!")
             if (response.data == 'no_user_found' ) {
                 return next("user/" + window.Laravel.user.id);
             }

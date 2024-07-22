@@ -2,10 +2,14 @@
 
 namespace App\Broadcasting;
 
+use App\Models\ChatMessage;
 use App\Models\User;
+
 
 class ChatChannel
 {
+
+
     /**
      * Create a new channel instance.
      *
@@ -13,7 +17,6 @@ class ChatChannel
      */
     public function __construct()
     {
-        //
     }
 
     /**

@@ -14,4 +14,9 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('chat', ChatChannel::class);
+Broadcast::channel('chat', function(){
+    return auth()->check();
+});
+Broadcast::channel('chat_read', function(){
+    return auth()->check();
+});

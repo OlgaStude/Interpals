@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Events\NewMessage;
+use App\Events\ReadMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\chatMessageRequest;
 use App\Http\Resources\CMResource;
@@ -18,8 +19,8 @@ class chatController extends Controller
 
         if($message){
 
-            broadcast(new NewMessage(Auth::user()));
            
+
             return response()->json(['status' => 200, 'message' => 'message is created!']);
         }
 
@@ -30,26 +31,55 @@ class chatController extends Controller
 
     public function getChatMessages($id){
 
-        
-
     
             if($id != Auth::user()->id){
-                $messages = ChatMessage::where([
-                    ['sender_id', '=', Auth::user()->id],
-                    ['reciewer_id', '=', $id],
-                ])->orWhere([
-                    ['reciewer_id', '=', Auth::user()->id],
-                    ['sender_id', '=', $id],
-                ])->orderBy('id', 'asc')->get();
         
-                broadcast(new NewMessage(Auth::user()));
+                broadcast(new NewMessage(Auth::user()->id, $id));
 
-                return CMResource::collection($messages);
+                return;
             }
     
             return 'false';
+    }
 
-        
+
+    public function readMessages($last_id, $sender_id, $receiver_id){
+
+        if($last_id == 0){
+            ChatMessage::where([
+                ['sender_id', '=', $sender_id],
+                ['reciewer_id', '=', $receiver_id],
+            ])->update(['read_msg' => 1]);
+
+            $messages = ChatMessage::where([
+                ['sender_id', '=', $sender_id],
+                ['reciewer_id', '=', $receiver_id],
+            ])->orWhere([
+                ['reciewer_id', '=', $sender_id],
+                ['sender_id', '=', $receiver_id],
+            ])->orderBy('id', 'asc')->get();
+
+            broadcast(new ReadMessage(CMResource::collection($messages)));
+            
+            return CMResource::collection($messages);
+            
+        }
+        ChatMessage::where([
+            ['sender_id', '=', $sender_id],
+            ['reciewer_id', '=', $receiver_id],
+        ])->update(['read_msg' => 1]);
+
+        $messages = ChatMessage::where([
+            ['sender_id', '=', $sender_id],
+            ['reciewer_id', '=', $receiver_id],
+        ])->orWhere([
+            ['reciewer_id', '=', $sender_id],
+            ['sender_id', '=', $receiver_id],
+        ])->orderBy('id', 'asc')->get();
+
+        broadcast(new ReadMessage(CMResource::collection($messages)));
+
+        return;
 
     }
     

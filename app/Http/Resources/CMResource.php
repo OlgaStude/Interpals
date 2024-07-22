@@ -20,24 +20,25 @@ class CMResource extends JsonResource
     {
         if($this->reciewer_id == Auth::user()->id){
             $test = true;
-            if(!$this->read_msg){
-                ChatMessage::where('id', $this->id)->update(['read_msg' => 1]);
-            }
             return [
                 'id' => $this->id,
                 'messager_id' => $this->sender_id,
+                'reciewer_id' => $this->reciewer_id,
                 'messager_name' => User::find($this->sender_id)->name,
                 'messager_surname' => User::find($this->sender_id)->surname,
                 'messager_pfp' => User::find($this->sender_id)->pfp,
                 'is_received_message' => $test,
                 'time' => Carbon::parse($this->created_at)->format('d.m.Y'),
-                'text' => $this->message
+                'text' => $this->message,
+                'read_msg' => $this->read_msg
+
             ];
         } else {
             $test = false;
             return [
                 'id' => $this->id,
                 'messager_id' => $this->sender_id,
+                'reciewer_id' => $this->reciewer_id,
                 'messager_name' => User::find($this->sender_id)->name,
                 'messager_surname' => User::find($this->sender_id)->surname,
                 'messager_pfp' => User::find($this->sender_id)->pfp,

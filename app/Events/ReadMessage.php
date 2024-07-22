@@ -2,25 +2,21 @@
 
 namespace App\Events;
 
-use App\Models\ChatMessage;
-use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Queue\SerializesModels;
 
-class NewMessage implements ShouldBroadcast
+class ReadMessage implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-     public $user_1;
 
-     public $user_2;
+    public $chatMessages;
 
 
     /**
@@ -28,10 +24,10 @@ class NewMessage implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct($user_1, $user_2)
+    public function __construct(ResourceCollection $chatMessages)
     {
-        $this->user_1 = $user_1;
-        $this->user_2 = $user_2;
+        $this->chatMessages = $chatMessages;
+        
     }
 
     /**
@@ -41,6 +37,6 @@ class NewMessage implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('chat');
+        return new PrivateChannel('chat_read');
     }
 }
