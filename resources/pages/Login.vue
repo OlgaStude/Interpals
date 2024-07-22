@@ -128,10 +128,14 @@ form strong{
       },
     },
     beforeRouteEnter(to, from, next) {
-    if (window.Laravel.isLogged) {
-      return next("/dashboard");
-    }
-    next();
-  },
+
+      // Если пользователь авторизован
+
+      if (window.Laravel.isLogged) {
+        return next("/dashboard");
+      }
+      next();
+      
+    },
   };
   </script>

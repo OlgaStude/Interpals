@@ -64,8 +64,10 @@
       }
     },
     created() {
-        console.log(this.penpal_id)
         this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+
+            // Вывод сообщений при загрузке
+
             this.$axios.get('api/readmessages/0/'+this.penpal_id+'/'+this.user_id).then(response => {
                 this.messages = response.data.data
                 setTimeout(() => {
@@ -73,33 +75,44 @@
                         element.scrollTop = element.scrollHeight;
                     }, 500);
             })
-        this.$axios.get('api/user/'+this.penpal_id).then(response => {
-            this.penpal = response.data;
-        })
 
-         });   
-         Echo.private(`chat`)
+            // Данные о собеседнике
+
+            this.$axios.get('api/user/'+this.penpal_id).then(response => {
+                this.penpal = response.data;
+            })
+
+        });   
+
+        // Принимает сигнал о появлении вовых сообщений
+        // проверяет, если они предназначенны для этой
+        // переписки, отправляет запрос на получение,
+        // если да
+
+        Echo.private(`chat`)
             .listen('NewMessage', (e) => {
                 if(this.penpal_id == e.user_1 && this.user_id == e.user_2 || this.penpal_id == e.user_2 && this.user_id == e.user_1){
                     this.$axios.get("/sanctum/csrf-cookie").then((response) => {                  
-                        this.$axios.get('api/readmessages/'+this.messages[this.messages.length - 1].id+'/'+this.penpal_id+'/'+this.user_id).then(response => {
+                        this.$axios.get('api/readmessages/1/'+this.penpal_id+'/'+this.user_id).then(response => {
                         
                         })
                     });                      
                     
                 }
                 
-          });    
+        });    
           
-          Echo.private('chat_read').listen('ReadMessage', (e) => {
-                   if(this.penpal_id == e.chatMessages.reciewer_id && this.user_id == e.chatMessages.sender_id || this.penpal_id == e.chatMessages.sender_id && this.user_id == e.chatMessages.reciewer_id){                
-                    this.messages = e.chatMessages
-                    setTimeout(() => {
-                        const element = document.getElementById('dialog');
-                        element.scrollTop = element.scrollHeight;
-                    }, 500);
-                 }                   
-          });
+        // Получает новые сообщения и выводит их
+
+        Echo.private('chat_read').listen('ReadMessage', (e) => {
+            if(this.penpal_id == e.chatMessages.reciewer_id && this.user_id == e.chatMessages.sender_id || this.penpal_id == e.chatMessages.sender_id && this.user_id == e.chatMessages.reciewer_id){                
+                this.messages = e.chatMessages
+                setTimeout(() => {
+                    const element = document.getElementById('dialog');
+                    element.scrollTop = element.scrollHeight;
+                }, 500);
+            }                   
+        });
         
     },
     methods: {
@@ -112,11 +125,9 @@
             .then((response) => {
                 this.chat_message = ''
                 this.$axios.get("api/getmessages/"+this.penpal_id)
-            .then((response) => {
-            })
+                .then((response) => {})
             })
             .catch((err) => {
-              console.log(err);
               if (err.response.data.errors.message) {
                 this.errors.message = err.response.data.errors.message[0];
               }
@@ -126,19 +137,28 @@
         
     },
     beforeRouteEnter(to, from, next) {
+
+        // Если пользователь не авторизован
+
         if(!window.Laravel.user){
             return next("/");
         }
+
+        // Если id пользователя и собеседника совпадают
+
         if(window.Laravel.user.id == window.location.href.substring(window.location.href.lastIndexOf('/') + 1)){
             return next("user/" + window.Laravel.user.id);
         }
+
+        // Если нет такого пользователя(собеседника)
+
         axios.get("/sanctum/csrf-cookie").then((response) => {        
-        axios.get('api/user/'+window.location.href.substring(window.location.href.lastIndexOf('/') + 1)).then(response => {
-            if (response.data == 'no_user_found' ) {
-                return next("user/" + window.Laravel.user.id);
-            }
-            next();
-        })
+            axios.get('api/user/'+window.location.href.substring(window.location.href.lastIndexOf('/') + 1)).then(response => {
+                if (response.data == 'no_user_found' ) {
+                    return next("user/" + window.Laravel.user.id);
+                }
+                next();
+            })
         });                
   },
   };

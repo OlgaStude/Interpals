@@ -171,7 +171,6 @@ export default{
                     this.posts = response.data.data;
                 })
             }).catch(err => {
-                    console.log(err.response.data)
                 if (err.response.data.errors.text) {
                     this.errors.text = err.response.data.errors.text[0];
                 }
@@ -270,17 +269,22 @@ export default{
             }
     },
     beforeRouteEnter(to, from, next) {
+
+        // Если пользователь не авторизован
+
         if(!window.Laravel.user){
             return next("/");
         }
+
+        // Если нет такого пользователя
+
         axios.get("/sanctum/csrf-cookie").then((response) => {     
-        axios.get('api/user/'+window.location.href.substring(window.location.href.lastIndexOf('/') + 1)).then(response => {
-            console.log(response.data)
-            if (response.data == 'no_user_found' ) {
-                return next("dashboard");
-            }
-            next();
-        })
+            axios.get('api/user/'+window.location.href.substring(window.location.href.lastIndexOf('/') + 1)).then(response => {
+                if (response.data == 'no_user_found' ) {
+                    return next("dashboard");
+                }
+                next();
+            })
         });    
   },
 }

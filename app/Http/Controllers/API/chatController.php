@@ -15,41 +15,39 @@ class chatController extends Controller
     
     public function create_message(chatMessageRequest $req){
 
-        $message = ChatMessage::create(['read_msg' => 0, 'sender_id' => Auth::user()->id, 'reciewer_id' => $req->receiver_id, 'message' => $req->message]);
+        ChatMessage::create([
+            'read_msg' => 0, 
+            'sender_id' => Auth::user()->id, 
+            'reciewer_id' => $req->receiver_id, 
+            'message' => $req->message
+        ]);
 
-        if($message){
-
-           
-
-            return response()->json(['status' => 200, 'message' => 'message is created!']);
-        }
-
-        return response()->json(['status' => 422, 'message' => 'message is not created!']);
+        return;
 
     }
 
+    // Отправка сигнала: новые сообщения получены
+    // Отправка данных для проверки: для какого
+    // чата предназначены сообщения
 
     public function getChatMessages($id){
-
-    
-            if($id != Auth::user()->id){
         
-                broadcast(new NewMessage(Auth::user()->id, $id));
+            broadcast(new NewMessage(Auth::user()->id, $id));
 
-                return;
-            }
-    
-            return 'false';
+            return;
+
     }
 
+    // Изменяет статус сообщений собеседника на "прочитано",
+    // затем выводит все сообщения из чата
 
-    public function readMessages($last_id, $sender_id, $receiver_id){
+    public function readMessages($page_load, $sender_id, $receiver_id){
 
-        if($last_id == 0){
             ChatMessage::where([
                 ['sender_id', '=', $sender_id],
                 ['reciewer_id', '=', $receiver_id],
-            ])->update(['read_msg' => 1]);
+            ])
+            ->update(['read_msg' => 1]);
 
             $messages = ChatMessage::where([
                 ['sender_id', '=', $sender_id],
@@ -57,29 +55,20 @@ class chatController extends Controller
             ])->orWhere([
                 ['reciewer_id', '=', $sender_id],
                 ['sender_id', '=', $receiver_id],
-            ])->orderBy('id', 'asc')->get();
+            ])
+            ->orderBy('id', 'asc'
+            )->get();
 
             broadcast(new ReadMessage(CMResource::collection($messages)));
             
-            return CMResource::collection($messages);
-            
-        }
-        ChatMessage::where([
-            ['sender_id', '=', $sender_id],
-            ['reciewer_id', '=', $receiver_id],
-        ])->update(['read_msg' => 1]);
+            // $page_load проверяет, если страница было только-что 
+            // загружена или обновлена
 
-        $messages = ChatMessage::where([
-            ['sender_id', '=', $sender_id],
-            ['reciewer_id', '=', $receiver_id],
-        ])->orWhere([
-            ['reciewer_id', '=', $sender_id],
-            ['sender_id', '=', $receiver_id],
-        ])->orderBy('id', 'asc')->get();
+            if($page_load == 1){            
+                return CMResource::collection($messages);
+            }           
 
-        broadcast(new ReadMessage(CMResource::collection($messages)));
-
-        return;
+            return;
 
     }
     

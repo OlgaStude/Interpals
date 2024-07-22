@@ -5,14 +5,10 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\loginRequest;
 use App\Http\Requests\registrationRequest;
-use App\Http\Resources\userResource;
 use App\Models\ChatMessage;
 use App\Models\Language;
-use App\Models\Language_s;
 use App\Models\User;
-use Illuminate\Contracts\Session\Session;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,7 +19,13 @@ class userController extends Controller
         
         $req->file('pfp')->store('public/profile_pics');
         $pfp_name = $req->file('pfp')->hashName();
-        $user = User::create(array_merge($req->validated(), ['password' => Hash::make($req->password), 'pfp' => $pfp_name, 'lang_s' => $req->lang_s, 'lang_t' => $req->lang_t]));
+
+        $user = User::create(array_merge($req->validated(), [
+            'password' => Hash::make($req->password), 
+            'pfp' => $pfp_name, 
+            'lang_s' => $req->lang_s, 
+            'lang_t' => $req->lang_t
+        ]));
 
         if($user){
            
@@ -50,18 +52,13 @@ class userController extends Controller
 
     public function logout(){
 
-        try{
             Auth::logout();
-            return response()->json(['status' => 200, 'message' => 'user is logged out!']);
-            
 
-        } catch(QueryException $e){
-            return response()->json(['status' => 422, 'message' => $e]);
-        }
-
+            return;
 
     }
 
+    // Все языки из Базы данных
 
     public function get_langs(){
 
@@ -70,6 +67,9 @@ class userController extends Controller
 
     }
 
+    // Проверка на существования пользователя по id
+    // и вывод данных о нём, если существует
+
     public function get_user($id)
     {
         $exists = User::where('id', '=', $id)->exists();
@@ -77,9 +77,12 @@ class userController extends Controller
         if($exists){
             return User::find($id);
         }
+
         return 'no_user_found';
 
     }
+
+    // Вывод возможных собеседников
 
     public function get_users()
     {
@@ -88,15 +91,18 @@ class userController extends Controller
             ['id', '<>', Auth::user()->id],
             ['lang_t', '=', Auth::user()->lang_s],
             ['lang_s', '=', Auth::user()->lang_t],
-            ])->get();
+        ])
+        ->get();
 
     }
 
+    // Вывод чатов пользователей
 
     public function get_existant_chats()
     {
         $users = User::where('id', '<>', Auth::user()->id)->get();
 
+        // список всех собеседников
         $send = [];
 
         foreach($users as $user){
@@ -106,14 +112,14 @@ class userController extends Controller
             ])->orWhere([
                 ['reciewer_id', '=', Auth::user()->id],
                 ['sender_id', '=', $user->id],
-            ])->exists();
+            ])
+            ->exists();
+
             if($exists){
                 $send[] = $user;
             }
             
         }
-
-        
 
         return $send;
 

@@ -41,7 +41,7 @@ Route::post('/filtercomments', [commentsController::class, 'getComments']);
 
 Route::post('/sendmessage', [chatController::class, 'create_message']);
 Route::get('/getmessages/{id}', [chatController::class, 'getChatMessages']);
-Route::get('/readmessages/{last_id}/{sender_id}/{receiver_id}', [chatController::class, 'readMessages']);
+Route::get('/readmessages/{page_load}/{sender_id}/{receiver_id}', [chatController::class, 'readMessages']);
 
 
 Route::get('/getusers', [UserController::class, 'get_users']);

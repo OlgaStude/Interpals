@@ -17,7 +17,7 @@
 
 
   <script>
-  export default {
+export default {
     name: "P_chats",
     data() {
       return {
@@ -25,18 +25,21 @@
       }
     },
     created() {
-           this.$axios.get("/sanctum/csrf-cookie").then((response) => {     
-        this.$axios.get('api/getusers').then(response => {
+        this.$axios.get("/sanctum/csrf-cookie").then((response) => {     
+            this.$axios.get('api/getusers').then(response => {
                 this.users = response.data;
             })
-         });           
+        });           
     },
-    methods: {
-    },beforeRouteEnter(to, from, next) {
+    beforeRouteEnter(to, from, next) {
+
+        // Если пользователь не авторизован
+
         if(!window.Laravel.user){
             return next("/");
         }
         next();
+
     }
   };
   </script>

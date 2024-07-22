@@ -138,7 +138,6 @@
 
 <script>
 
-// $('.file_upload').bind('change', function() { var fileName = ''; fileName = $(this).val().split('\\'); $('#file_selected').html(fileName[fileName.length - 1]); if($('#file_selected').html() == ''){$('#file_selected').html('Выберете файл')} $('.custom-file-upload p').hide();})
     export default{
         name: 'Registration',
         data(){
@@ -200,7 +199,6 @@
                             'Content-Type': 'multipart/form-data'
                         },
                     }).then(response => {
-                        console.log()
                         if(response.data.status == 200){
                             window.location.href = '/user/' + response.data.user_id
                         } else {
@@ -239,11 +237,14 @@
             }
         },
         beforeRouteEnter(to, from, next) {
-    if (window.Laravel.isLogged) {
-      return next("user/" + window.Laravel.user.id);
-    }
-    next();
-  },
+
+            // Если пользователь авторизован
+
+            if (window.Laravel.isLogged) {
+                return next("user/" + window.Laravel.user.id);
+            }
+            next();
+        },
         
     }
 

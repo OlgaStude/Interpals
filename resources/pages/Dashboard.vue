@@ -27,7 +27,7 @@
                     <option :value="user.lang_t">только {{ user.lang_t }}</option>
                 </select>
             </div>
-            <button @click="open_form">
+            <button @click="form_is_on = true">
                 Создать пост
             </button>
         </div>
@@ -178,57 +178,51 @@
                 },
             }
         }, created(){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-            this.$axios.get('api/posts').then(response => {
-                this.posts = response.data.data;
-                console.log(response.data.data)
-                for(let i = 0; i < this.posts.length; i++){
-                    this.errors.comment_txt[i] = '';
-                }
-            })
-        });            
-    }, methods: {
-            open_form(){
-                this.form_is_on = true
-            },
+            this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                this.$axios.get('api/posts').then(response => {
+                    this.posts = response.data.data;
+                    for(let i = 0; i < this.posts.length; i++){
+                        this.errors.comment_txt[i] = '';
+                    }
+                })
+            });            
+        }, methods: {
             close_form(){
                 this.form_is_on = false
             },
-            write_comment_f(){
-                this.write_comment = true;
-            },
-            onChangeLang(e) {
-                this.errors.comment_txt = [];
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                if (e.target.value == 'no_filter') {
-                    this.filter_lang = null;
-                    this.filter_is_on = false;
-                    this.posts = '';
-                    this.$axios.get('api/posts/').then(response => {
-                        this.posts = response.data.data;
-                    })
-                } else {
-                    this.filter_lang = e.target.value;
-                    this.filter_is_on = true;
-                    this.posts = [];
-                    this.$axios.get('api/posts/').then(response => {
-                        for(let i = 0; i<response.data.data.length; i++){
-                            if(response.data.data[i].lang == this.filter_lang){
-                                this.posts.push(response.data.data[i]);
-                            }
-                        }
-                    })
-                }
-         });               
-            },
             onChangeLanginform(e) {
-
-                console.log(e.target.value)
                 if (e.target.value != 'Выберите язык') {
                     this.form_lang = e.target.value;
                 } else {
                     this.form_lang = null
                 }
+            },
+
+            // Вывод постов на определённом языке
+
+            onChangeLang(e) {
+                this.errors.comment_txt = [];
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    if (e.target.value == 'no_filter') {
+                        this.filter_lang = null;
+                        this.filter_is_on = false;
+                        this.posts = '';
+                        this.$axios.get('api/posts/').then(response => {
+                            this.posts = response.data.data;
+                        })
+                    } else {
+                        this.filter_lang = e.target.value;
+                        this.filter_is_on = true;
+                        this.posts = [];
+                        this.$axios.get('api/posts/').then(response => {
+                            for(let i = 0; i<response.data.data.length; i++){
+                                if(response.data.data[i].lang == this.filter_lang){
+                                    this.posts.push(response.data.data[i]);
+                                }
+                            }
+                        })
+                    }
+                });               
             },
             create_post(e){
                 e.preventDefault();
@@ -237,51 +231,49 @@
                     lang: null,
                     comment_txt: []
                 }
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/makepost', {
-                    lang: this.form_lang,
-                    text: this.form_text
-                }).then(response => {
-                    this.form_text = ''
-                    this.close_form();
-                    this.$axios.get('api/posts/').then(response => {
-                        this.posts = null;
-                        this.posts = response.data.data;
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/makepost', {
+                        lang: this.form_lang,
+                        text: this.form_text
+                    }).then(response => {
+                        this.form_text = ''
+                        this.close_form();
+                        this.$axios.get('api/posts/').then(response => {
+                            this.posts = null;
+                            this.posts = response.data.data;
+                        })
+                    }).catch(err => {
+                        if (err.response.data.errors.text) {
+                            this.errors.text = err.response.data.errors.text[0];
+                        }
+                        if (err.response.data.errors.lang) {
+                            this.errors.lang = err.response.data.errors.lang[0];
+                        }
                     })
-                }).catch(err => {
-                        console.log(err.response.data.errors)
-                    if (err.response.data.errors.text) {
-                        this.errors.text = err.response.data.errors.text[0];
-                    }
-                    if (err.response.data.errors.lang) {
-                        this.errors.lang = err.response.data.errors.lang[0];
-                    }
-                })
-          });              
+                });              
             },
             create_comment(post_id, index) {
                 this.errors.comment_txt = [];
-                console.log(this.$refs['comment_text']);
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/makecomment',
-                    {
-                        post_id: post_id,
-                        text: this.$refs['comment_text'][index-1].value,
-                    }
-                ).then(response => {
-                this.$axios.get('api/posts').then(response => {
-                    this.posts = response.data.data;
-                    this.$refs['comment_text'][index -1].value = '';
-                })
-            }).catch((err) => {
-                if (err.response.data.errors.text) {
-                    this.errors.comment_txt[index-1] = err.response.data.errors.text[0];
-                }
-                });
-        });                
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/makecomment',
+                        {
+                            post_id: post_id,
+                            text: this.$refs['comment_text'][index-1].value,
+                        }
+                    ).then(response => {
+                    this.$axios.get('api/posts').then(response => {
+                        this.posts = response.data.data;
+                        this.$refs['comment_text'][index -1].value = '';
+                    })
+                    }).catch((err) => {
+                        if (err.response.data.errors.text) {
+                            this.errors.comment_txt[index-1] = err.response.data.errors.text[0];
+                        }
+                        });
+                });                
             },
             like_comment(id, e){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+            this.$axios.get("/sanctum/csrf-cookie").then((response) => {
                 this.$axios.post('api/likecomment',
                     {
                         id: id
@@ -305,53 +297,56 @@
                         e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
                     }
                 })
-         });               
+            });               
             },
             dislike_comment(id, e){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/dislikecomment',
-                    {
-                        id: id
-                    }
-                ).then(response => {
-                    if(e.target.classList.contains('not_disliked')){
-                        e.target.classList.remove('not_disliked')
-                        e.target.classList.add('disliked')
-                        e.target.setAttribute('src', '/storage/imgs/Dislike_red.png')
-                        e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) + 1;
-                        if(e.target.previousElementSibling.previousElementSibling.classList.contains('liked')){
-                            e.target.previousElementSibling.previousElementSibling.classList.remove('liked')
-                            e.target.previousElementSibling.previousElementSibling.classList.add('not_liked')
-                            e.target.previousElementSibling.previousElementSibling.setAttribute('src', '/storage/imgs/Like.png')
-                            e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML) - 1;
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/dislikecomment',
+                        {
+                            id: id
                         }
-                    }else{
-                        e.target.classList.remove('disliked')
-                        e.target.classList.add('not_disliked')
-                        e.target.setAttribute('src', '/storage/imgs/Disike.png')
-                        e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
-                    }
+                    ).then(response => {
+                        if(e.target.classList.contains('not_disliked')){
+                            e.target.classList.remove('not_disliked')
+                            e.target.classList.add('disliked')
+                            e.target.setAttribute('src', '/storage/imgs/Dislike_red.png')
+                            e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) + 1;
+                            if(e.target.previousElementSibling.previousElementSibling.classList.contains('liked')){
+                                e.target.previousElementSibling.previousElementSibling.classList.remove('liked')
+                                e.target.previousElementSibling.previousElementSibling.classList.add('not_liked')
+                                e.target.previousElementSibling.previousElementSibling.setAttribute('src', '/storage/imgs/Like.png')
+                                e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML) - 1;
+                            }
+                        }else{
+                            e.target.classList.remove('disliked')
+                            e.target.classList.add('not_disliked')
+                            e.target.setAttribute('src', '/storage/imgs/Disike.png')
+                            e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
+                        }
 
-                })
-           });             
+                    })
+                });             
             },
             filterComments(index, id){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/filtercomments',
-                    {
-                        post_id: id,
-                        filter: this.$refs['comment_filter'][index -1].value
-                    }).then(response => {
-                        this.posts[index-1].comments = response.data.data
-                })
-          });                              
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/filtercomments',
+                        {
+                            post_id: id,
+                            filter: this.$refs['comment_filter'][index -1].value
+                        }).then(response => {
+                            this.posts[index-1].comments = response.data.data
+                    })
+                });                              
             }
         },beforeRouteEnter(to, from, next) {
-        if(!window.Laravel.user){
-            return next("/");
+
+            // Если пользователь не авторизован
+
+            if(!window.Laravel.user){
+                return next("/");
+            }
+            next();
         }
-        next();
-    }
     }
 
 </script>

@@ -28,15 +28,15 @@
       }
     },
     created() {
-           this.$axios.get("/sanctum/csrf-cookie").then((response) => {     
-        this.$axios.get('api/getexistantchats').then(response => {
-            console.log(response.data)
-            this.users = response.data;
-        })
-          });                  
-    },
-    methods: {
+        this.$axios.get("/sanctum/csrf-cookie").then((response) => {     
+            this.$axios.get('api/getexistantchats').then(response => {
+                this.users = response.data;
+            })
+        });                  
     },beforeRouteEnter(to, from, next) {
+
+        // Если пользователь не авторизован
+
         if(!window.Laravel.user){
             return next("/");
         }
