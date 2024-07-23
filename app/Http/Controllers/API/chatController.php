@@ -61,7 +61,7 @@ class chatController extends Controller
 
             broadcast(new ReadMessage(CMResource::collection($messages)));
             
-            // $page_load проверяет, если страница было только-что 
+            // $page_load проверяет, если страница была только-что 
             // загружена или обновлена
 
             if($page_load == 1){            
