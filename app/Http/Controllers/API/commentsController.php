@@ -24,8 +24,11 @@ class commentsController extends Controller
             'dislikes' => 0
         ]);
 
+        $comments = Comment::where('posts_id', '=', $req->post_id)
+            ->orderBy('likes', 'desc')
+            ->get();
         
-        return;
+        return commentResource::collection($comments);
     }
 
 

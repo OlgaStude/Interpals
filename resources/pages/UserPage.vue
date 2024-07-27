@@ -64,6 +64,7 @@
                         <option value="time">Сначала свежие</option>
                     </select>
                 </div>
+                <input type="text" v-else hidden ref="comment_filter">
                 <div class="comment" v-for="commnet in posts[index-1].comments" :key="commnet">
                     <div class="comment_text">
                         <img class="comment_user_pfp" :src="'/storage/profile_pics/'+commnet.user_pfp" alt="">
@@ -201,8 +202,8 @@ export default{
             });
          });           
         },
-            like_comment(id, e){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+        like_comment(id, e){
+            this.$axios.get("/sanctum/csrf-cookie").then((response) => {
                 this.$axios.post('api/likecomment',
                     {
                         id: id
@@ -226,46 +227,48 @@ export default{
                         e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
                     }
                 })
-         });               
+            });               
             },
             dislike_comment(id, e){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/dislikecomment',
-                    {
-                        id: id
-                    }
-                ).then(response => {
-                    if(e.target.classList.contains('not_disliked')){
-                        e.target.classList.remove('not_disliked')
-                        e.target.classList.add('disliked')
-                        e.target.setAttribute('src', '/storage/imgs/Dislike_red.png')
-                        e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) + 1;
-                        if(e.target.previousElementSibling.previousElementSibling.classList.contains('liked')){
-                            e.target.previousElementSibling.previousElementSibling.classList.remove('liked')
-                            e.target.previousElementSibling.previousElementSibling.classList.add('not_liked')
-                            e.target.previousElementSibling.previousElementSibling.setAttribute('src', '/storage/imgs/Like.png')
-                            e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/dislikecomment',
+                        {
+                            id: id
                         }
-                    }else{
-                        e.target.classList.remove('disliked')
-                        e.target.classList.add('not_disliked')
-                        e.target.setAttribute('src', '/storage/imgs/Disike.png')
-                        e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
-                    }
+                    ).then(response => {
+                        if(e.target.classList.contains('not_disliked')){
+                            e.target.classList.remove('not_disliked')
+                            e.target.classList.add('disliked')
+                            e.target.setAttribute('src', '/storage/imgs/Dislike_red.png')
+                            e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) + 1;
+                            if(e.target.previousElementSibling.previousElementSibling.classList.contains('liked')){
+                                e.target.previousElementSibling.previousElementSibling.classList.remove('liked')
+                                e.target.previousElementSibling.previousElementSibling.classList.add('not_liked')
+                                e.target.previousElementSibling.previousElementSibling.setAttribute('src', '/storage/imgs/Like.png')
+                                e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML) - 1;
+                            }
+                        }else{
+                            e.target.classList.remove('disliked')
+                            e.target.classList.add('not_disliked')
+                            e.target.setAttribute('src', '/storage/imgs/Disike.png')
+                            e.target.previousElementSibling.innerHTML = parseInt(e.target.previousElementSibling.innerHTML) - 1;
+                        }
 
-                })
-           });             
+                    })
+                });             
             },
             filterComments(index, id){
-        this.$axios.get("/sanctum/csrf-cookie").then((response) => {
-                this.$axios.post('api/filtercomments',
-                    {
-                        post_id: id,
-                        filter: this.$refs['comment_filter'][index -1].value
-                    }).then(response => {
-                    this.posts[index-1].comments = response.data.data
-                })
-           });             
+                this.$axios.get("/sanctum/csrf-cookie").then((response) => {
+                    this.$axios.post('api/filtercomments',
+                        {
+                            post_id: id,
+                            filter: this.$refs['comment_filter'][index -1].value
+                        }).then(response => {
+                            
+                            this.posts[index-1].comments = response.data.data
+
+                    })
+                });             
             }
     },
     beforeRouteEnter(to, from, next) {

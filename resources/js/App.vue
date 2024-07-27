@@ -187,11 +187,7 @@
               e.preventDefault();
               this.$axios.get('/sanctum/csrf-cookie').then(response => {
                 this.$axios.post('api/logout').then(response => {
-                    if(response.status == 200){
                         window.location.href = '/';
-                    } else {
-                        console.log(response)
-                    }
                 }).catch(error => {
                     console.error(error)
                 })

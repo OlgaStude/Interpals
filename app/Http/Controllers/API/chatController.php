@@ -64,11 +64,11 @@ class chatController extends Controller
             // $page_load проверяет, если страница была только-что 
             // загружена или обновлена
 
-            if($page_load == 1){            
+            if($page_load == 0){            
                 return CMResource::collection($messages);
             }           
 
-            return;
+            return '!!!';
 
     }
     

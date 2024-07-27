@@ -149,14 +149,6 @@
 </script>
 
 <style>
-    @font-face {
-        font-family: "Roboto";
-        src: url('storage/fonts/Roboto-Regular.ttf');
-    }
-    @font-face {
-        font-family: "jejuM";
-        src: url('storage/fonts/JejuMyeongjo-Regular.ttf');
-    }
     .banner{
         height: 974px;
         position: relative;
@@ -184,7 +176,7 @@
             font-family: 'jejuM';
             font-size: 90px;
             width: 700px;
-            left: 19vw;
+            left: 17vw;
             top: 160px;
         }
         .banner a, .banner a:visited{

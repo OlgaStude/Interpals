@@ -49,32 +49,33 @@
                     <strong>{{ errors.comment_txt[index-1] }}</strong>
                     <button @click="create_comment(posts[index-1].id, index)">Прокомметировать</button>
             </div>
-                <div v-if="posts[index-1].comments.length > 0" class="comments">
-                    <div class="filter">
-                        <select @change="filterComments(index, posts[index-1].id)" name="" ref="comment_filter" id="">
-                            <option value="usefullness">Сначала популярные</option>
-                            <option value="time">Сначала свежие</option>
-                        </select>
-                    </div>
-                    <div class="comment" v-for="commnet in posts[index-1].comments" :key="commnet">
-                        <div class="comment_text">
-                            <img class="comment_user_pfp" :src="'/storage/profile_pics/'+ commnet.user_pfp" alt="">
-                            <div>
-                                <p class="upper_line"><a :href="$router.resolve({name: 'UserPage', params: { id: commnet.user_id }}).href">{{ commnet.user_name }} {{ commnet.user_surname }}</a></p>
-                                <p class="lower_line">{{ commnet.text }}</p>
-                            </div>
+            <div class="comments">
+                <div v-if="posts[index-1].comments.length > 0" class="filter">
+                    <select @change="filterComments(index, posts[index-1].id)" name="" ref="comment_filter" id="">
+                        <option value="usefullness">Сначала популярные</option>
+                        <option value="time">Сначала свежие</option>
+                    </select>
+                </div>
+                <input type="text" v-else hidden ref="comment_filter">
+                <div class="comment" v-for="commnet in posts[index-1].comments" :key="commnet">
+                    <div class="comment_text">
+                        <img class="comment_user_pfp" :src="'/storage/profile_pics/'+commnet.user_pfp" alt="">
+                        <div>
+                            <p class="upper_line"><a :href="$router.resolve({name: 'UserPage', params: { id: commnet.user_id }}).href">{{ commnet.user_name }} {{ commnet.user_surname }}</a></p>
+                            <p class="lower_line">{{ commnet.text }}</p>
                         </div>
-                        <div class="rate">
+                    </div>
+                    <div class="rate">
                             <span class="counter">{{ commnet.likes }}</span>
                             <img @click="like_comment(commnet.id, $event)" v-if="commnet.liked" class="liked" src="/storage/imgs/Like_red.png" alt="">
                             <img @click="like_comment(commnet.id, $event)" v-else class="not_liked" src="/storage/imgs/Like.png" alt="">
                             <span class="counter">{{ commnet.dislikes }}</span>
                             <img @click="dislike_comment(commnet.id, $event)" v-if="commnet.disliked" class="disliked dislike" src="/storage/imgs/Dislike_red.png" alt="">
                             <img @click="dislike_comment(commnet.id, $event)" v-else class="not_disliked dislike" src="/storage/imgs/Disike.png" alt="">
-                        </div>
                     </div>
-                    
                 </div>
+                
+            </div>
             </div>
             </div>
         </div>
@@ -238,6 +239,7 @@
                     }).then(response => {
                         this.form_text = ''
                         this.close_form();
+                        document.querySelector('.lang_filter select').selectedIndex = 0
                         this.$axios.get('api/posts/').then(response => {
                             this.posts = null;
                             this.posts = response.data.data;
@@ -261,10 +263,8 @@
                             text: this.$refs['comment_text'][index-1].value,
                         }
                     ).then(response => {
-                    this.$axios.get('api/posts').then(response => {
-                        this.posts = response.data.data;
+                        this.posts[index-1].comments = response.data.data
                         this.$refs['comment_text'][index -1].value = '';
-                    })
                     }).catch((err) => {
                         if (err.response.data.errors.text) {
                             this.errors.comment_txt[index-1] = err.response.data.errors.text[0];
@@ -328,6 +328,7 @@
                 });             
             },
             filterComments(index, id){
+                console.log(index)
                 this.$axios.get("/sanctum/csrf-cookie").then((response) => {
                     this.$axios.post('api/filtercomments',
                         {
@@ -335,8 +336,9 @@
                             filter: this.$refs['comment_filter'][index -1].value
                         }).then(response => {
                             this.posts[index-1].comments = response.data.data
+
                     })
-                });                              
+                });             
             }
         },beforeRouteEnter(to, from, next) {
 

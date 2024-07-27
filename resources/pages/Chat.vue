@@ -94,7 +94,7 @@
                 if(this.penpal_id == e.user_1 && this.user_id == e.user_2 || this.penpal_id == e.user_2 && this.user_id == e.user_1){
                     this.$axios.get("/sanctum/csrf-cookie").then((response) => {                  
                         this.$axios.get('api/readmessages/1/'+this.penpal_id+'/'+this.user_id).then(response => {
-                        
+                            
                         })
                     });                      
                     
@@ -105,7 +105,8 @@
         // Получает новые сообщения и выводит их
 
         Echo.private('chat_read').listen('ReadMessage', (e) => {
-            if(this.penpal_id == e.chatMessages.reciewer_id && this.user_id == e.chatMessages.sender_id || this.penpal_id == e.chatMessages.sender_id && this.user_id == e.chatMessages.reciewer_id){                
+            if(this.penpal_id == e.chatMessages[0].reciewer_id && this.user_id == e.chatMessages[0].messager_id || this.penpal_id == e.chatMessages[0].messager_id && this.user_id == e.chatMessages[0].reciewer_id){                
+        
                 this.messages = e.chatMessages
                 setTimeout(() => {
                     const element = document.getElementById('dialog');
@@ -125,7 +126,8 @@
             .then((response) => {
                 this.chat_message = ''
                 this.$axios.get("api/getmessages/"+this.penpal_id)
-                .then((response) => {})
+                .then((response) => {
+                })
             })
             .catch((err) => {
               if (err.response.data.errors.message) {
